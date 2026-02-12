@@ -1,0 +1,7 @@
+{
+  "name": "Gestionnaire de Factures STEG & SONEDE",
+  "description": "Une application professionnelle pour suivre et gérer vos factures d'électricité (STEG) et d'eau (SONEDE) par centre, avec analyse intelligente par IA.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
