@@ -4,8 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, toggleTheme } from "../store";
 import LogoGenerator from "./LogoGenerator";
 import { Societe } from "../types";
-import { PAYMENT_DELAY_DAYS } from "../constants";
-
+import { PAYMENT_DELAY_DAYS } from "../constants"; 
 interface LayoutProps {
   children: React.ReactNode;
   user: Societe;
@@ -29,10 +28,22 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
   // Calcul intelligent des notifications
   const notifications = useMemo(() => {
     const today = new Date();
-    const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+    /*const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+*/
+const prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
 
+const previousMonthStr = `${prevMonthDate.getFullYear()}-${String(
+  prevMonthDate.getMonth() + 1
+).padStart(2, "0")}`;
+
+const startOfPreviousMonth = prevMonthDate;
+const endOfPreviousMonth = new Date(
+  prevMonthDate.getFullYear(),
+  prevMonthDate.getMonth() + 1,
+  0
+);
     const overdue = invoices.filter((inv) => {
       if (inv.isPaid) return false;
       const receptionDate = new Date(inv.date);
@@ -47,19 +58,19 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
     centres.forEach((centre) => {
       const checkUtility = (type: "STEG" | "SONEDE") => {
         return invoices.some((inv) => {
-          if (inv.centreId !== centre.id || inv.type !== type) return false;
+          if (inv.centreId !== (centre as any)._id || inv.type !== type) return false;
 
           // Cas Mois Unique
           if (
             inv.periodType === "MONTH" &&
-            inv.billingMonth === currentMonthStr
+            inv.billingMonth === previousMonthStr
           )
             return true;
 
           // Cas Multi-Mois
           if (
             inv.periodType === "MULTI" &&
-            inv.coveredMonths?.includes(currentMonthStr)
+            inv.coveredMonths?.includes(previousMonthStr)
           )
             return true;
 
@@ -67,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           if (inv.periodType === "RANGE" && inv.periodStart && inv.periodEnd) {
             const pStart = new Date(inv.periodStart);
             const pEnd = new Date(inv.periodEnd);
-            return pStart <= endOfMonth && pEnd >= startOfMonth;
+            return pStart <= endOfPreviousMonth && pEnd >= startOfPreviousMonth;
           }
 
           return false;
@@ -203,7 +214,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
                                 {m.centreName}
                               </p>
                               <p className="text-[10px] text-slate-500 font-bold">
-                                Facture {m.type} manquante (Mois actuel)
+                                Facture {m.type} manquante (Mois précédent)
                               </p>
                             </div>
                           </div>

@@ -22,6 +22,7 @@ import {
   updateCentreThunk,
   deleteCentreThunk,
 } from "./store";
+import { checkBackendAlive, API_URL } from "./services/apiService";
 
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
@@ -51,6 +52,10 @@ const App: React.FC = () => {
     undefined,
   );
 
+  const [backendStatus, setBackendStatus] = useState<
+    "checking" | "up" | "down"
+  >("checking");
+
   const [deleteModalState, setDeleteModalState] = useState<{
     isOpen: boolean;
     type: "invoice" | "centre";
@@ -61,9 +66,23 @@ const App: React.FC = () => {
     id: null,
   });
 
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const isAlive = await checkBackendAlive();
+      if (isMounted) {
+        setBackendStatus(isAlive ? "up" : "down");
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Charger les données dès que l'utilisateur est présent
   useEffect(() => {
-    if (user) {
+    if (user && backendStatus === "up") {
       const { id: userid } = user;
 
       dispatch(fetchInvoices(userid));
@@ -72,9 +91,8 @@ const App: React.FC = () => {
       } else {
         alert("Veuiller inscriver-vous");
       }
-     
     }
-  }, [user, dispatch]);
+  }, [user, backendStatus, dispatch]);
 
   const handleLogin = (email: string, pass: string) => {
     dispatch(loginThunk({ email, pass }));
@@ -122,6 +140,37 @@ const App: React.FC = () => {
     else dispatch(deleteCentreThunk(id));
     setDeleteModalState({ isOpen: false, type: "invoice", id: null });
   };
+
+  if (backendStatus === "checking") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <p className="text-slate-700 dark:text-slate-200 text-sm">
+          Connexion au serveur en cours...
+        </p>
+      </div>
+    );
+  }
+
+  if (backendStatus === "down") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 px-4">
+        <div className="max-w-md text-center">
+          <h1 className="text-2xl font-bold mb-4 text-red-600">
+            Impossible de démarrer FactPro
+          </h1>
+          <p className="text-slate-700 dark:text-slate-200 mb-3">
+            L&apos;application ne parvient pas à se connecter au serveur .
+          </p>
+          <p className="text-xs text-slate-500 mb-1">
+            Veuillez actualisez la page.
+          </p>
+          <p className="text-xs text-slate-500">
+            Si le problème persiste, veuillez contacter le développeur.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>

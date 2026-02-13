@@ -16,14 +16,51 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, centres }) => {
   const pendingAmount = invoices.filter(i => !i.isPaid).reduce((sum, i) => sum + i.amount, 0);
 
   const today = new Date();
-  const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
 
-  const missingInvoices = centres.flatMap(centre => {
-    const missing = [];
-    const hasSteg = invoices.some(inv => inv.centreId === centre.id && inv.type === 'STEG' && inv.billingMonth === currentMonthStr);
-    const hasSonede = invoices.some(inv => inv.centreId === centre.id && inv.type === 'SONEDE' && inv.billingMonth === currentMonthStr);
-    if (!hasSteg) missing.push({ centre: centre.name, type: 'STEG' });
-    if (!hasSonede) missing.push({ centre: centre.name, type: 'SONEDE' });
+  const previousMonthStr = `${prevMonthDate.getFullYear()}-${String(
+    prevMonthDate.getMonth() + 1
+  ).padStart(2, "0")}`;
+
+  const startOfPreviousMonth = prevMonthDate;
+  const endOfPreviousMonth = new Date(
+    prevMonthDate.getFullYear(),
+    prevMonthDate.getMonth() + 1,
+    0
+  );
+
+  const missingInvoices = centres.flatMap((centre) => {
+    const missing: { centre: string; type: "STEG" | "SONEDE" }[] = [];
+
+    const hasUtility = (type: "STEG" | "SONEDE") => {
+      return invoices.some((inv) => {
+        if (inv.centreId !== (centre as any)._id || inv.type !== type) return false;
+
+        if (inv.periodType === "MONTH" && inv.billingMonth === previousMonthStr)
+          return true;
+
+        if (
+          inv.periodType === "MULTI" &&
+          inv.coveredMonths?.includes(previousMonthStr)
+        )
+          return true;
+
+        if (inv.periodType === "RANGE" && inv.periodStart && inv.periodEnd) {
+          const pStart = new Date(inv.periodStart);
+          const pEnd = new Date(inv.periodEnd);
+          return pStart <= endOfPreviousMonth && pEnd >= startOfPreviousMonth;
+        }
+
+        return false;
+      });
+    };
+
+    const hasSteg = hasUtility("STEG");
+    const hasSonede = hasUtility("SONEDE");
+
+    if (!hasSteg) missing.push({ centre: centre.name, type: "STEG" });
+    if (!hasSonede) missing.push({ centre: centre.name, type: "SONEDE" });
+
     return missing;
   });
 
@@ -51,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, centres }) => {
             <div className="flex-1">
               <h4 className="text-base font-black text-slate-900 dark:text-white mb-2">Rappels de saisie - {today.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}</h4>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Les centres suivants n'ont pas encore leurs factures enregistrées pour ce mois :
+                Les centres suivants n'ont pas encore leurs factures enregistrées pour le mois précédent :
               </p>
               <div className="flex flex-wrap gap-2">
                 {missingInvoices.map((m, i) => (

@@ -1,4 +1,4 @@
-const API_URL = "http://192.168.1.35:5000/api";
+export const API_URL = "http://192.168.1.35:5000/api";
 
 export type ApiErrorKind = "NETWORK" | "HTTP" | "UNKNOWN";
 
@@ -96,4 +96,14 @@ export const apiService = {
     return request("DELETE", endpoint);
   },
   toApiErrorPayload,
+};
+
+export const checkBackendAlive = async (): Promise<boolean> => {
+  try {
+    // We only care that the server is reachable at all, not about the HTTP status.
+    await fetch(API_URL, { method: "GET" });
+    return true;
+  } catch {
+    return false;
+  }
 };
