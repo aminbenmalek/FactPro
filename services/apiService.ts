@@ -1,4 +1,6 @@
-export const API_URL = "http://192.168.1.35:5000/api";
+/** In production, set VITE_API_URL to your backend base URL including /api */
+const env = (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env;
+export const API_URL = env?.VITE_API_URL || "http://localhost:5050/api";
 
 export type ApiErrorKind = "NETWORK" | "HTTP" | "UNKNOWN";
 

@@ -6,8 +6,19 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware
-app.use(cors(process.env.FRONTEND_URL || "http://localhost:3000"));
+// Middleware – allow frontend origin (set FRONTEND_URL on VPS)
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map((o) => o.trim())
+  : ["http://localhost:3000"];
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(null, false);
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(morgan("dev"));
 // Connexion MongoDB
