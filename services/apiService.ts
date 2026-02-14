@@ -1,6 +1,7 @@
-/** In production, set VITE_API_URL to your backend base URL including /api */
+/** In production, set VITE_API_URL to your backend base URL including /api (e.g. https://api.factpro.benmalekprod.com/api) */
 const env = (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env;
-export const API_URL = env?.VITE_API_URL || "http://localhost:5050/api";
+export const API_URL = "https://benmalekprod.com/back_fact/api" 
+ //export const API_URL = "http://localhost:5050/api";
 
 export type ApiErrorKind = "NETWORK" | "HTTP" | "UNKNOWN";
 

@@ -6,8 +6,8 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware – allow frontend origin (set FRONTEND_URL on VPS)
-const allowedOrigins = process.env.FRONTEND_URL
+// Middleware – allow frontend origin (set FRONTEND_URL on VPS e.g. https://www.factpro.benmalekprod.com)
+/*const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(",").map((o) => o.trim())
   : ["http://localhost:3000"];
 app.use(
@@ -18,7 +18,8 @@ app.use(
     },
     credentials: true,
   })
-);
+);*/
+app.use(cors( {origin: ["http://localhost:3000","https://www.factpro.benmalekprod.com","https://factpro.benmalekprod.com"],credentials: true}))
 app.use(express.json());
 app.use(morgan("dev"));
 // Connexion MongoDB
