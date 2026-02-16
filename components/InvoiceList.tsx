@@ -141,7 +141,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-md border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse w-full table-auto ">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                 <th className="px-6 py-5 text-xs font-bold uppercase tracking-wider">
@@ -180,7 +180,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
                         <i
                           className={`fas ${inv.type === "STEG" ? "fa-bolt" : "fa-faucet"}`}
                         ></i>{" "}
-                        {inv.type}
+                        {inv.type+' REF:'+(inv?.type==="STEG" ? centre?.referenceSteg : centre?.referenceSonede)}
                       </span>
                     </td>
                     <td className="px-6 py-4">

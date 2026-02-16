@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React,{useState} from 'react';
 import { Centre, Invoice } from '../types';
 
 interface CentreListProps {
@@ -11,6 +11,17 @@ interface CentreListProps {
 }
 
 const CentreList: React.FC<CentreListProps> = ({ centres, invoices, onAdd, onEdit, onDelete }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredCentres = centres
+  .filter((centre) => {
+  
+
+    const matchesSearch =
+   
+      centre?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  })
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -23,10 +34,25 @@ const CentreList: React.FC<CentreListProps> = ({ centres, invoices, onAdd, onEdi
           <span>Nouveau Centre</span>
         </button>
       </div>
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+          
+          <div className="relative flex-1 lg:max-w-md">
+            <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input
+              type="text"
+              placeholder="Rechercher Centre..."
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {centres.map(centre => {
-          const centreInvoices = invoices.filter(i => i.centreId === centre.id);
+        {filteredCentres.map(centre => {
+          const centreInvoices = invoices.filter(i => i.centreId === centre._id);
           const stegSum = centreInvoices.filter(i => i.type === 'STEG').reduce((s, i) => s + i.amount, 0);
           const sonedeSum = centreInvoices.filter(i => i.type === 'SONEDE').reduce((s, i) => s + i.amount, 0);
 
@@ -69,12 +95,12 @@ const CentreList: React.FC<CentreListProps> = ({ centres, invoices, onAdd, onEdi
 
               <div className="space-y-3 pt-4 border-t border-slate-800">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Cumul STEG</span>
-                  <span className="text-sm font-bold text-orange-400">{stegSum.toFixed(3)} TND</span>
+                  <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Référence STEG</span>
+                  <span className="text-sm font-bold text-orange-400">{centre.referenceSteg ? centre.referenceSteg : "Non specifiée"}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Cumul SONEDE</span>
-                  <span className="text-sm font-bold text-blue-400">{sonedeSum.toFixed(3)} TND</span>
+                  <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Référence SONEDE</span>
+                  <span className="text-sm font-bold text-blue-400">{centre.referenceSonede ? centre.referenceSonede : "Non specifiée"}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-dashed border-slate-800">
                   <span className="text-xs text-slate-500 font-medium">{centreInvoices.length} factures totales</span>

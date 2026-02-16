@@ -79,7 +79,7 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, centres }) => {
   return (
     <div className="space-y-8">
       {/* Alerte détaillée des noms de centres */}
-      {missingInvoices.length > 0 && (
+      {/*missingInvoices.length > 0 && (
         <div className="bg-white dark:bg-slate-900 border-l-8 border-orange-500 p-6 rounded-2xl shadow-xl animate-in slide-in-from-left-4">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -101,7 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, centres }) => {
             </div>
           </div>
         </div>
-      )}
+      )*/}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border-b-4 border-orange-500">

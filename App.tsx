@@ -33,7 +33,7 @@ import CentreForm from "./components/CentreForm";
 import ConfirmModal from "./components/ConfirmModal";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import AIAssistant from "./components/AIAssistant";
+//import AIAssistant from "./components/AIAssistant";
 import { Invoice, Centre } from "./types";
 
 const App: React.FC = () => {
@@ -251,10 +251,10 @@ const App: React.FC = () => {
                 />
               }
             />
-            <Route
+            {/*<Route
               path="/assistant"
               element={<AIAssistant invoices={invoices} centres={centres} />}
-            />
+            />*/}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
 
