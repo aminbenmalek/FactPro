@@ -3,6 +3,7 @@ import {
   createSlice,
   PayloadAction,
   createAsyncThunk,
+  isAnyOf,
 } from "@reduxjs/toolkit";
 import { Invoice, Centre, Societe } from "./types";
 import { apiService } from "./services/apiService";
@@ -11,14 +12,13 @@ import { apiService } from "./services/apiService";
 
 export const loginThunk = createAsyncThunk(
   "auth/login",
-  async (
-    credentials: { email: string; pass: string },
-    { rejectWithValue },
-  ) => {
+  async (credentials: { email: string; pass: string }, { rejectWithValue }) => {
     try {
       return await apiService.post("/auth/login", credentials);
-    } catch (err) {
-      return rejectWithValue(apiService.toApiErrorPayload(err));
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data || { message: "Connexion impossible." },
+      );
     }
   },
 );
@@ -32,7 +32,9 @@ export const signupThunk = createAsyncThunk(
     try {
       return await apiService.post("/auth/signup", userData);
     } catch (err) {
-      return rejectWithValue(apiService.toApiErrorPayload(err));
+      return rejectWithValue(
+        err.response?.data || { message: "Inscription impossible." },
+      );
     }
   },
 );
@@ -48,27 +50,45 @@ export const fetchInvoices = createAsyncThunk(
 
 export const addInvoiceThunk = createAsyncThunk(
   "invoices/add",
-  async (invoice: Omit<Invoice, "id">) => {
-    return await apiService.post("/factures", invoice);
+  async (invoice: Omit<Invoice, "id">, { rejectWithValue }) => {
+    try {
+      return await apiService.post("/factures", invoice);
+    } catch (err) {
+      console.log(err.message);
+      return rejectWithValue(err.message || "Erreur d'ajout Facture");
+    }
   },
 );
 
 export const updateInvoiceThunk = createAsyncThunk(
   "invoices/update",
-  async (invoice: Invoice) => {
-    console.log("dans store : ",invoice);
-    return await apiService.put(
-      `/factures/${invoice._id}/${invoice.userId}`,
-      invoice,
-    );
+  async (invoice: Invoice, { rejectWithValue }) => {
+    try {
+      return await apiService.put(
+        `/factures/${invoice._id}/${invoice.userId}`,
+        invoice,
+      );
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { message: "Mise à jour impossible." },
+      );
+    }
   },
 );
 
 export const deleteInvoiceThunk = createAsyncThunk(
   "invoices/delete",
-  async (id: string) => {
-    await apiService.delete(`/factures/${id}`);
-    return id;
+  async (credentials: { id: string; userId: string }, { rejectWithValue }) => {
+    try {
+      await apiService.delete(
+        `/factures/${credentials.id}/${credentials.userId}`,
+      );
+      return credentials.id;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { message: "Suppression impossible." },
+      );
+    }
   },
 );
 
@@ -76,30 +96,59 @@ export const deleteInvoiceThunk = createAsyncThunk(
 
 export const fetchCentres = createAsyncThunk(
   "centres/fetchAll",
-  async (userId: String) => {
-    return await apiService.get(`/centres/${userId}`);
+  async (userId: String, { rejectWithValue }) => {
+    try {
+      return await apiService.get(`/centres/${userId}`);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { message: "Impossible de charger les centres." },
+      );
+    }
   },
 );
 
 export const addCentreThunk = createAsyncThunk(
   "centres/add",
-  async (centre: Omit<Centre, "id">) => {
-    return await apiService.post("/centres", centre);
+  async (centre: Omit<Centre, "id">, { rejectWithValue }) => {
+    try {
+      return await apiService.post("/centres", centre);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { message: "Impossible d'ajouter le centre." },
+      );
+    }
   },
 );
 
 export const updateCentreThunk = createAsyncThunk(
   "centres/update",
-  async (centre: Centre) => {
-    return await apiService.put(`/centres/${centre.id}`, centre);
+  async (centre: Centre, { rejectWithValue }) => {
+    try {
+      return await apiService.put(`/centres/${centre.id}`, centre);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || {
+          message: "Impossible de mettre à jour le centre.",
+        },
+      );
+    }
   },
 );
 
 export const deleteCentreThunk = createAsyncThunk(
   "centres/delete",
-  async (id: string) => {
-    await apiService.delete(`/centres/${id}`);
-    return id;
+  async (credentials: { id: string; userId: string }, { rejectWithValue }) => {
+    try {
+      console.log("Deleting centre with credentials:", credentials);
+      await apiService.delete(
+        `/centres/${credentials.id}/${credentials.userId}`,
+      );
+      return credentials.id;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { message: "Impossible de supprimer le centre." },
+      );
+    }
   },
 );
 
@@ -211,7 +260,9 @@ const invoiceSlice = createSlice({
         state.items.unshift(action.payload);
       })
       .addCase(updateInvoiceThunk.fulfilled, (state, action) => {
-        const index = state.items.findIndex((i) => i._id === action.payload._id);
+        const index = state.items.findIndex(
+          (i) => i._id === action.payload._id,
+        );
         if (index !== -1) state.items[index] = action.payload;
       })
       .addCase(deleteInvoiceThunk.fulfilled, (state, action) => {
@@ -256,7 +307,70 @@ const centreSlice = createSlice({
       });
   },
 });
+// --- NOTIFICATION SLICE ---
 
+interface NotificationState {
+  message: string | null;
+  type: "error" | "success" | "info";
+}
+
+const initialNotification: NotificationState = {
+  message: null,
+  type: "info",
+};
+const notificationSlice = createSlice({
+  name: "notification",
+  initialState: initialNotification,
+  reducers: {
+    showNotification: (
+      state,
+      action: PayloadAction<{
+        message: string;
+        type?: "error" | "success" | "info";
+      }>,
+    ) => {
+      state.message = action.payload.message;
+      state.type = action.payload.type || "info";
+    },
+    hideNotification: (state) => {
+      state.message = null;
+    },
+  },
+  extraReducers: (builder) => {
+    // Intercepter toutes les actions rejetées pour afficher une erreur automatiquement
+    builder.addMatcher(
+      (action) => action.type.endsWith("/rejected"),
+      (state, action: any) => {
+        // Ignorer les erreurs d'auth car elles sont gérées localement dans les formulaires
+        if (!action.type.startsWith("auth/")) {
+          state.message =
+            action.payload || "Une erreur inattendue est survenue.";
+          state.type = "error";
+        }
+      },
+    );
+    // Afficher un succès pour certaines actions
+    builder.addMatcher(
+      isAnyOf(
+        addInvoiceThunk.fulfilled,
+        addCentreThunk.fulfilled,
+        deleteInvoiceThunk.fulfilled,
+        deleteCentreThunk.fulfilled,
+      ),
+      (state, action) => {
+        let msg = "Opération réussie";
+        if (action.type.includes("add")) msg = "Élément ajouté avec succès";
+        if (action.type.includes("delete")) msg = "Élément supprimé";
+        state.message = msg;
+        state.type = "success";
+      },
+    );
+  },
+});
+
+export const { showNotification, hideNotification } = notificationSlice.actions;
+
+//FIN NOTIF SLICE
 interface UIState {
   theme: "light" | "dark";
 }
@@ -282,6 +396,7 @@ export const store = configureStore({
     ui: uiSlice.reducer,
     invoices: invoiceSlice.reducer,
     centres: centreSlice.reducer,
+    notification: notificationSlice.reducer,
   },
 });
 

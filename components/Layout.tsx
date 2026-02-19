@@ -4,7 +4,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, toggleTheme } from "../store";
 import LogoGenerator from "./LogoGenerator";
 import { Societe } from "../types";
-import { PAYMENT_DELAY_DAYS } from "../constants"; 
+import { PAYMENT_DELAY_DAYS } from "../constants";
+import NotificationToast from "./NotificationToast";
+
 interface LayoutProps {
   children: React.ReactNode;
   user: Societe;
@@ -32,18 +34,22 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 */
-const prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const prevMonthDate = new Date(
+      today.getFullYear(),
+      today.getMonth() - 1,
+      1,
+    );
 
-const previousMonthStr = `${prevMonthDate.getFullYear()}-${String(
-  prevMonthDate.getMonth() + 1
-).padStart(2, "0")}`;
+    const previousMonthStr = `${prevMonthDate.getFullYear()}-${String(
+      prevMonthDate.getMonth() + 1,
+    ).padStart(2, "0")}`;
 
-const startOfPreviousMonth = prevMonthDate;
-const endOfPreviousMonth = new Date(
-  prevMonthDate.getFullYear(),
-  prevMonthDate.getMonth() + 1,
-  0
-);
+    const startOfPreviousMonth = prevMonthDate;
+    const endOfPreviousMonth = new Date(
+      prevMonthDate.getFullYear(),
+      prevMonthDate.getMonth() + 1,
+      0,
+    );
     const overdue = invoices.filter((inv) => {
       if (inv.isPaid) return false;
       const receptionDate = new Date(inv.date);
@@ -58,7 +64,8 @@ const endOfPreviousMonth = new Date(
     centres.forEach((centre) => {
       const checkUtility = (type: "STEG" | "SONEDE") => {
         return invoices.some((inv) => {
-          if (inv.centreId !== (centre as any)._id || inv.type !== type) return false;
+          if (inv.centreId !== (centre as any)._id || inv.type !== type)
+            return false;
 
           // Cas Mois Unique
           if (
@@ -123,10 +130,11 @@ const endOfPreviousMonth = new Date(
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight dark:text-white text-slate-900">
-                FactPro 
+                FactPro
               </h1>
               <p className="text-[10px] text-blue-500 font-bold uppercase">
-              {authState && "SOCIETE:"+authState.user?.nom} <br/> DEVELOPPER PAR MOHAMED AMIN
+                {authState && "SOCIETE:" + authState.user?.nom} <br />{" "}
+                DEVELOPPER PAR MOHAMED AMIN
               </p>
             </div>
           </div>
@@ -261,6 +269,7 @@ const endOfPreviousMonth = new Date(
           setIsLogoModalOpen(false);
         }}
       />
+      <NotificationToast />
     </div>
   );
 };

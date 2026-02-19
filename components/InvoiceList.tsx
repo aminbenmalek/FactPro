@@ -47,7 +47,6 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
   const filteredInvoices = invoices
     .filter((inv) => {
       const matchesType = filterType === "ALL" || inv.type === filterType;
-    
 
       const centre = centres.find((c) => c._id === inv.centreId);
       const matchesSearch =
@@ -180,7 +179,11 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
                         <i
                           className={`fas ${inv.type === "STEG" ? "fa-bolt" : "fa-faucet"}`}
                         ></i>{" "}
-                        {inv.type+' REF:'+(inv?.type==="STEG" ? centre?.referenceSteg : centre?.referenceSonede)}
+                        {inv.type +
+                          " REF:" +
+                          (inv?.type === "STEG"
+                            ? centre?.referenceSteg
+                            : centre?.referenceSonede)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -233,7 +236,9 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
                         <i className="fas fa-edit"></i>
                       </button>
                       <button
-                        onClick={() => onDelete(inv.id)}
+                        onClick={() =>
+                          onDelete({ id: inv._id, userId: inv.userId })
+                        }
                         className="p-2 text-slate-400 hover:text-red-500"
                       >
                         <i className="fas fa-trash-alt"></i>
