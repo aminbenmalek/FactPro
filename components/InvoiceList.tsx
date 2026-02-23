@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Invoice, Centre, BillingCategory } from "../types";
 import ConfirmModal from "./ConfirmModal";
 import { PAYMENT_DELAY_DAYS } from "../constants";
+import ExportModal from "./ExportModal";
 
 interface InvoiceListProps {
   invoices: Invoice[];
@@ -26,6 +27,8 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
   const today = new Date();
 
   const [confirmPaymentState, setConfirmPaymentState] = useState<{
@@ -123,6 +126,13 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
             >
               <i className="fas fa-plus"></i>
               <span>Nouvelle Facture</span>
+            </button>
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="px-6 py-3 bg-emerald-600 dark:bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 flex items-center gap-2 shadow-lg transition-all active:scale-95"
+            >
+              <i className="fas fa-file-export"></i>
+              <span>Exporter</span>
             </button>
             <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
               {["ALL", "STEG", "SONEDE"].map((t) => (
@@ -319,6 +329,12 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
           setConfirmPaymentState({ isOpen: false, invoice: null })
         }
         variant="info"
+      />
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        invoices={invoices}
+        centres={centres}
       />
     </div>
   );
