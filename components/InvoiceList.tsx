@@ -24,6 +24,8 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
     "ALL",
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const today = new Date();
 
   const [confirmPaymentState, setConfirmPaymentState] = useState<{
@@ -55,7 +57,16 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
       return matchesType && matchesSearch;
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+  const paginatedInvoices = filteredInvoices.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const formatPeriod = (inv: Invoice) => {
     if (inv.periodType === "MONTH" && inv.billingMonth) {
       const [year, month] = inv.billingMonth.split("-");
@@ -164,7 +175,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {filteredInvoices.map((inv) => {
+              {paginatedInvoices.map((inv) => {
                 const overdue = isOverdue(inv);
                 const centre = centres.find((c) => c._id === inv.centreId);
                 return (
@@ -250,6 +261,50 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="text-xs text-slate-500 font-medium">
+              Affichage de{" "}
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {(currentPage - 1) * itemsPerPage + 1}
+              </span>{" "}
+              à{" "}
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {Math.min(currentPage * itemsPerPage, filteredInvoices.length)}
+              </span>{" "}
+              sur{" "}
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {filteredInvoices.length}
+              </span>{" "}
+              factures
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <i className="fas fa-chevron-left text-xs"></i>
+              </button>
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => handlePageChange(i + 1)}
+                  className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${currentPage === i + 1 ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700"}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <i className="fas fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <ConfirmModal
         isOpen={confirmPaymentState.isOpen}
