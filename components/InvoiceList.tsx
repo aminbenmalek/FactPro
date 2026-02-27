@@ -177,6 +177,9 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
                   Montant
                 </th>
                 <th className="px-6 py-5 text-xs font-bold uppercase tracking-wider">
+                  Date Réception
+                </th>
+                <th className="px-6 py-5 text-xs font-bold uppercase tracking-wider">
                   Statut
                 </th>
                 <th className="px-6 py-5 text-xs font-bold uppercase tracking-wider text-right">
@@ -235,6 +238,9 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
                     </td>
                     <td className="px-6 py-4 text-sm font-black text-slate-900 dark:text-white">
                       {inv.amount.toFixed(3)} DT
+                    </td>
+                    <td className="px-6 py-4 text-sm font-black text-slate-900 dark:text-white">
+                      {new Date(inv.createdAt).toLocaleDateString("fr-FR")}
                     </td>
                     <td className="px-6 py-4">
                       <button
